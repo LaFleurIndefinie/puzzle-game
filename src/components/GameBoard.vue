@@ -55,6 +55,9 @@ const dragColor = computed(() => {
   return dragging.value.color || '#4A90D9'
 })
 
+// Level name
+const levelName = ref('')
+
 // Check if a pool cell is filled
 function isCellFilled(x, y) {
   return occupiedCells.value.has(`${x},${y}`)
@@ -64,6 +67,7 @@ function initGame() {
   const level = loadLevel(props.levelId)
   if (level) {
     initLevel(level)
+    levelName.value = level.name
     showComplete.value = false
   }
 }
@@ -190,6 +194,7 @@ onUnmounted(() => {
         </div>
       </div>
 
+      <div class="level-name">{{ levelName }}</div>
       <div class="hint-text">Press R or right-click to rotate</div>
     </main>
 
@@ -280,6 +285,12 @@ onUnmounted(() => {
 
 .pool-cell.filled {
   background: #4A90D9;
+}
+
+.level-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
 }
 
 .hint-text {
