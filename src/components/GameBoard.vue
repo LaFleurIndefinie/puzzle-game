@@ -14,7 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['back'])
 
 const { loadLevel, markCompleted } = useLevels()
-const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace, rotatePiece } = useGameState()
+const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace } = useGameState()
 const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging } = useDragDrop()
 
 const boardRef = ref(null)
@@ -22,6 +22,7 @@ const cellSize = 40
 const cellGap = 2
 const showComplete = ref(false)
 
+// Pool dimensions - exact size of the grid
 const poolDimensions = computed(() => {
   if (!pool.value.length) return { width: 0, height: 0 }
   const cols = pool.value[0].length
@@ -32,6 +33,7 @@ const poolDimensions = computed(() => {
   }
 })
 
+// Position style for the dragging piece
 const dragStyle = computed(() => {
   if (!dragging.value) return {}
   return {
@@ -40,16 +42,19 @@ const dragStyle = computed(() => {
   }
 })
 
+// Current shape being dragged
 const activeShape = computed(() => {
   if (!dragging.value) return null
   return dragging.value.rotatedShape
 })
 
+// Color of piece being dragged
 const dragColor = computed(() => {
   if (!dragging.value) return '#4A90D9'
   return dragging.value.color || '#4A90D9'
 })
 
+// Check if a pool cell is filled
 function isCellFilled(x, y) {
   return occupiedCells.value.has(`${x},${y}`)
 }
@@ -76,12 +81,11 @@ function handleMove(event) {
   const rect = boardRef.value?.getBoundingClientRect()
   if (!rect) return
 
-  const { gridX, gridY } = screenToGrid(
-    event.clientX,
-    event.clientY,
-    rect,
-    cellSize
-  )
+  // Calculate grid position accounting for gap
+  const relX = event.clientX - rect.left
+  const relY = event.clientY - rect.top
+  const gridX = Math.floor(relX / (cellSize + cellGap))
+  const gridY = Math.floor(relY / (cellSize + cellGap))
 
   dragging.value.gridX = gridX
   dragging.value.gridY = gridY
@@ -160,27 +164,27 @@ onUnmounted(() => {
     </header>
 
     <main class="game-main">
-      <div ref="boardRef" class="game-board"
-        :style="{ width: poolDimensions.width + 'px', height: poolDimensions.height + 'px' }">
+      <!-- Pool container -->
+      <div ref="boardRef" class="game-board">
         <div v-for="(row, y) in pool" :key="y" class="pool-row">
           <div v-for="(cell, x) in row" :key="x" class="pool-cell"
             :class="{ valid: cell === 1, filled: isCellFilled(x, y) }" />
         </div>
 
-        <!-- Drop indicator overlay -->
+        <!-- Drop indicator - positioned to match pool cells exactly -->
         <div v-if="dragging && dragging.gridX !== undefined" class="drop-indicator"
           :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }" :style="{
             left: (dragging.gridX * (cellSize + cellGap)) + 'px',
             top: (dragging.gridY * (cellSize + cellGap)) + 'px',
-            width: (activeShape[0]?.length * cellSize + (activeShape[0]?.length - 1) * cellGap) + 'px',
-            height: (activeShape.length * cellSize + (activeShape.length - 1) * cellGap) + 'px'
+            width: (activeShape[0]?.length * cellSize + Math.max(0, activeShape[0]?.length - 1) * cellGap) + 'px',
+            height: (activeShape.length * cellSize + Math.max(0, activeShape.length - 1) * cellGap) + 'px'
           }" />
 
         <!-- Dragging piece overlay -->
         <div v-if="dragging" class="dragging-piece" :style="dragStyle">
           <div class="piece-grid">
             <div v-for="(row, y) in activeShape" :key="y" class="piece-row">
-              <div v-for="(cell, x) in row" :key="x" class="piece-cell" :class="{ filled: cell === 1 }" :style="{
+              <div v-for="(cell, x) in row" :key="x" class="piece-cell" :style="{
                 width: cellSize + 'px',
                 height: cellSize + 'px',
                 backgroundColor: cell === 1 ? dragColor : 'transparent'
@@ -245,15 +249,18 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
+  gap: 20px;
 }
 
 .game-board {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 8px;
+  padding: 16px;
   position: relative;
-  overflow: hidden;
 }
 
 .pool-row {
@@ -267,10 +274,6 @@ onUnmounted(() => {
   height: 40px;
   border-radius: 4px;
   transition: background-color 0.15s;
-  box-sizing: border-box;
-}
-
-.pool-cell.valid {
   background: #E0E0E0;
 }
 
@@ -279,7 +282,6 @@ onUnmounted(() => {
 }
 
 .hint-text {
-  margin-top: 20px;
   font-size: 13px;
   color: #999;
 }
@@ -290,11 +292,12 @@ onUnmounted(() => {
   border-radius: 6px;
   pointer-events: none;
   transition: border-color 0.15s, background-color 0.15s;
+  box-sizing: border-box;
 }
 
 .drop-indicator.valid {
   border-color: #5CB85C;
-  background: rgba(92, 184, 92, 0.15);
+  background: rgba(92, 184, 92, 0.2);
 }
 
 .dragging-piece {
@@ -320,10 +323,6 @@ onUnmounted(() => {
   height: 40px;
   border-radius: 4px;
   box-sizing: border-box;
-}
-
-.piece-cell.filled {
-  background: #4A90D9;
   border: 2px solid white;
 }
 </style>
