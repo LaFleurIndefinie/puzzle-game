@@ -33,7 +33,9 @@ function shuffleArray(array) {
 // Generate shuffled colors when pieces change
 watch(() => props.pieces, (newPieces) => {
   if (newPieces && newPieces.length > 0) {
-    shuffledColors.value = shuffleArray(PIECE_COLORS).slice(0, newPieces.length)
+    // Find max piece id to determine how many colors we need
+    const maxId = Math.max(...newPieces.map(p => p.id))
+    shuffledColors.value = shuffleArray(PIECE_COLORS).slice(0, maxId)
   }
 }, { immediate: true })
 
@@ -41,10 +43,9 @@ function getPieceColor(index) {
   return shuffledColors.value[index] || PIECE_COLORS[index % PIECE_COLORS.length]
 }
 
-function handleDragStart(piece, event, pieceWrapper) {
-  const pieceEl = pieceWrapper.querySelector('[data-piece="true"]')
+function handleDragStart(piece, event, pieceEl, color) {
+  if (!pieceEl) return
   const rect = pieceEl.getBoundingClientRect()
-  const color = getPieceColor(piece.id - 1)
   emit('startDrag', piece, event, rect, color)
 }
 </script>
@@ -54,16 +55,15 @@ function handleDragStart(piece, event, pieceWrapper) {
     <div class="tray-label">Pieces</div>
     <div class="pieces-container">
       <div
-        v-for="(piece, index) in pieces"
+        v-for="(piece, index) in pieces.filter(p => !p.placed)"
         :key="piece.id"
         class="piece-wrapper"
-        @mousedown="handleDragStart(piece, $event, $event.currentTarget)"
-        @touchstart="handleDragStart(piece, $event, $event.currentTarget)"
       >
         <Piece
           :piece="piece"
-          :color="getPieceColor(piece.id - 1)"
+          :color="shuffledColors[piece.id - 1] || PIECE_COLORS[(piece.id - 1) % PIECE_COLORS.length]"
           :cell-size="40"
+          @drag-start="(e, el) => handleDragStart(piece, e, el, shuffledColors[piece.id - 1] || PIECE_COLORS[(piece.id - 1) % PIECE_COLORS.length])"
         />
       </div>
     </div>
@@ -75,6 +75,7 @@ function handleDragStart(piece, event, pieceWrapper) {
   background: #FAFAFA;
   padding: 20px;
   border-top: 1px solid #E0E0E0;
+  pointer-events: auto;
 }
 
 .tray-label {
@@ -91,6 +92,7 @@ function handleDragStart(piece, event, pieceWrapper) {
   gap: 20px;
   justify-content: center;
   min-height: 80px;
+  pointer-events: auto;
 }
 
 .piece-wrapper {

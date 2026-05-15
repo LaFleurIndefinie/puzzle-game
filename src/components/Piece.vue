@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   piece: { type: Object, required: true },
@@ -8,16 +8,25 @@ const props = defineProps({
   color: { type: String, default: '#4A90D9' }
 })
 
+const emit = defineEmits(['dragStart'])
+
+const pieceRef = ref(null)
+
 const pieceWidth = computed(() =>
   props.piece.shape[0]?.length * props.cellSize || 0
 )
 const pieceHeight = computed(() =>
   props.piece.shape.length * props.cellSize || 0
 )
+
+function handleMouseDown(event) {
+  emit('dragStart', event, pieceRef.value)
+}
 </script>
 
 <template>
   <div
+    ref="pieceRef"
     class="piece"
     data-piece="true"
     :class="{ dragging: isDragging, placed: piece.placed }"
@@ -26,6 +35,8 @@ const pieceHeight = computed(() =>
       height: pieceHeight + 'px',
       '--piece-color': color
     }"
+    @mousedown="handleMouseDown"
+    @touchstart="handleMouseDown"
   >
     <div
       v-for="(row, y) in piece.shape"
@@ -67,8 +78,14 @@ const pieceHeight = computed(() =>
 }
 
 .piece.placed {
-  opacity: 0.5;
+  opacity: 0.7;
   cursor: grab;
+  pointer-events: auto;
+}
+
+.piece.placed:hover {
+  opacity: 1;
+  transform: scale(1.02);
 }
 
 .piece-row {

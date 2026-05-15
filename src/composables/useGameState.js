@@ -44,15 +44,26 @@ export function useGameState() {
 
     if (!canPlace(pieceId, poolX, poolY, shape)) return false
 
+    // Save the original color BEFORE removePiece clears it
+    const originalColor = piece.color
+
     removePiece(pieceId)
 
-    const cells = getPieceCells(piece, poolX, poolY, shape)
-    cells.forEach(({ x, y }) => occupiedCells.value.set(`${x},${y}`, color))
+    // Update piece shape to the placed (possibly rotated) shape
+    if (shape) {
+      piece.shape = shape
+    }
+
+    // Use original color if piece was already placed, otherwise use the new color
+    const finalColor = originalColor || color
+
+    const cells = getPieceCells(piece, poolX, poolY)
+    cells.forEach(({ x, y }) => occupiedCells.value.set(`${x},${y}`, finalColor))
 
     piece.placed = true
     piece.poolX = poolX
     piece.poolY = poolY
-    piece.color = color
+    piece.color = finalColor
 
     return true
   }

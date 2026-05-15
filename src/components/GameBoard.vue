@@ -55,6 +55,21 @@ const dragColor = computed(() => {
   return dragging.value.color || '#4A90D9'
 })
 
+// Placed pieces to render on board
+const placedPieces = computed(() => {
+  return pieces.value.filter(p => p.placed)
+})
+
+// Get style for placed piece
+function getPlacedPieceStyle(piece) {
+  return {
+    left: (boardPadding + piece.poolX * (cellSize + cellGap)) + 'px',
+    top: (boardPadding + piece.poolY * (cellSize + cellGap)) + 'px',
+    position: 'absolute',
+    pointerEvents: 'auto'
+  }
+}
+
 // Indicator style and validity
 const indicatorStyle = computed(() => {
   if (!dragging.value || dragging.value.gridX === undefined) return []
@@ -144,6 +159,17 @@ function handleStartDrag(piece, event, pieceRect, color) {
     removePiece(piece.id)
   }
   startDrag(piece, event, pieceRect, color)
+}
+
+// Handle drag start from board (placed pieces)
+function handleBoardDragStart(piece, event, pieceEl) {
+  if (piece.placed) {
+    removePiece(piece.id)
+  }
+  if (pieceEl) {
+    const rect = pieceEl.getBoundingClientRect()
+    startDrag(piece, event, rect, piece.color)
+  }
 }
 
 function handleMove(event) {
@@ -285,6 +311,32 @@ onUnmounted(() => {
           }"
         />
 
+        <!-- Placed pieces on board -->
+        <div
+          v-for="piece in placedPieces"
+          :key="'placed-' + piece.id"
+          class="placed-piece"
+          :style="getPlacedPieceStyle(piece)"
+          @mousedown="(e) => handleBoardDragStart(piece, e, e.currentTarget)"
+          @touchstart="(e) => handleBoardDragStart(piece, e, e.currentTarget)"
+        >
+          <div class="piece-grid">
+            <div v-for="(row, y) in piece.shape" :key="y" class="piece-row">
+              <div
+                v-for="(cell, x) in row"
+                :key="x"
+                class="piece-cell"
+                :class="{ filled: cell === 1 }"
+                :style="{
+                  width: cellSize + 'px',
+                  height: cellSize + 'px',
+                  backgroundColor: cell === 1 ? piece.color : 'transparent'
+                }"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- Dragging piece overlay -->
         <div v-if="dragging" class="dragging-piece" :style="dragStyle">
           <div class="piece-grid">
@@ -366,6 +418,33 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 16px;
   position: relative;
+}
+
+.placed-piece {
+  pointer-events: auto;
+}
+
+.placed-piece .piece-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.placed-piece .piece-row {
+  display: flex;
+  gap: 2px;
+}
+
+.placed-piece .piece-cell {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.placed-piece .piece-cell.filled {
+  border: 2px solid white;
 }
 
 .pool-row {

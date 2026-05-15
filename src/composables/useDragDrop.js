@@ -9,9 +9,9 @@ export function useDragDrop() {
     const clientX = event.clientX ?? event.touches?.[0]?.clientX
     const clientY = event.clientY ?? event.touches?.[0]?.clientY
 
-    // Offset: mouse relative to piece's top-left corner
-    const offsetX = clientX - pieceRect.left
-    const offsetY = clientY - pieceRect.top
+    // Center offset: piece center is always at mouse position
+    const offsetX = pieceRect.width / 2
+    const offsetY = pieceRect.height / 2
 
     dragging.value = {
       pieceId: piece.id,
@@ -55,6 +55,16 @@ export function useDragDrop() {
       const newShape = rotate90(dragging.value.rotatedShape)
       dragging.value.rotatedShape = newShape
       dragging.value.rotation = (dragging.value.rotation + 90) % 360
+
+      // Recalculate offset to keep piece centered after rotation
+      const newWidth = newShape[0]?.length || 0
+      const newHeight = newShape.length
+      const cellSize = 40
+      const cellGap = 2
+      const pieceWidth = newWidth * cellSize + (newWidth - 1) * cellGap
+      const pieceHeight = newHeight * cellSize + (newHeight - 1) * cellGap
+      dragging.value.offsetX = pieceWidth / 2
+      dragging.value.offsetY = pieceHeight / 2
     }
   }
 
