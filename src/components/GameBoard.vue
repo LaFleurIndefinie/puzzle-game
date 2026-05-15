@@ -173,6 +173,8 @@ onUnmounted(() => {
     </header>
 
     <main class="game-main">
+      <div class="level-name">{{ levelName }}</div>
+
       <!-- Pool container -->
       <div ref="boardRef" class="game-board">
         <div v-for="(row, y) in pool" :key="y" class="pool-row">
@@ -194,7 +196,6 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="level-name">{{ levelName }}</div>
       <div class="hint-text">Press R or right-click to rotate</div>
     </main>
 
@@ -291,6 +292,7 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 600;
   color: #333;
+  margin-bottom: 12px;
 }
 
 .hint-text {
