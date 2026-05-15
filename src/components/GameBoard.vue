@@ -60,6 +60,27 @@ const indicatorStyle = computed(() => {
   if (!dragging.value || dragging.value.gridX === undefined) return []
 
   const shape = dragging.value.rotatedShape
+  const poolCols = pool.value[0]?.length || 0
+  const poolRows = pool.value.length
+
+  // Check if any cell of the shape would be outside pool bounds
+  let isInsidePool = true
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x] === 1) {
+        const cellX = dragging.value.gridX + x
+        const cellY = dragging.value.gridY + y
+        if (cellX < 0 || cellX >= poolCols || cellY < 0 || cellY >= poolRows) {
+          isInsidePool = false
+          break
+        }
+      }
+    }
+    if (!isInsidePool) break
+  }
+
+  if (!isInsidePool) return []
+
   const isValid = canPlace(dragging.value.pieceId, dragging.value.gridX, dragging.value.gridY, shape)
   const cells = []
 
