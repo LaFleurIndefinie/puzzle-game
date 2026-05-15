@@ -287,11 +287,16 @@ onUnmounted(() => {
 .pool-row {
   display: flex;
   gap: 2px;
+  height: 40px;
 }
 
 .pool-cell {
+  flex-shrink: 0;
   border-radius: 4px;
   transition: background-color 0.15s;
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .pool-cell.valid {
@@ -322,9 +327,7 @@ onUnmounted(() => {
 }
 
 .dragging-piece {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: fixed;
   pointer-events: none;
   z-index: 100;
 }
