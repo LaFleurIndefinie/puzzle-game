@@ -1,67 +1,111 @@
 <script setup>
+import { ref, onMounted } from 'vue'
+import { useLevels } from '../composables/useLevels.js'
+
 const emit = defineEmits(['select'])
 
-const levels = [
-  { id: 1, name: 'Level 1', difficulty: 'Easy' },
-  { id: 2, name: 'Level 2', difficulty: 'Medium' },
-  { id: 3, name: 'Level 3', difficulty: 'Hard' }
-]
+const { levels, getCompletedLevels } = useLevels()
+const completedLevels = ref([])
 
-function selectLevel(levelId) {
-  emit('select', levelId)
+onMounted(() => {
+  completedLevels.value = getCompletedLevels()
+})
+
+function isCompleted(levelId) {
+  return completedLevels.value.includes(levelId)
 }
 </script>
 
 <template>
-  <div class="level-selector">
-    <h1>Block Puzzle</h1>
-    <div class="levels">
+  <div class="selector-container">
+    <header class="selector-header">
+      <h1>Block Puzzle</h1>
+      <p>Fill the pool with all pieces</p>
+    </header>
+
+    <main class="level-grid">
       <button
         v-for="level in levels"
         :key="level.id"
-        @click="selectLevel(level.id)"
-        class="level-button"
+        class="level-btn"
+        :class="{ completed: isCompleted(level.id) }"
+        @click="emit('select', level.id)"
       >
-        {{ level.name }}
+        <span class="level-num">{{ level.id }}</span>
+        <span v-if="isCompleted(level.id)" class="check">&#10003;</span>
+        <span class="level-name">{{ level.name }}</span>
       </button>
-    </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.level-selector {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.selector-container {
   min-height: 100vh;
-  padding: 2rem;
+  padding: 40px 20px;
+  background: #F5F5F5;
+}
+
+.selector-header {
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 h1 {
-  margin-bottom: 2rem;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+p {
+  color: #666;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.level-btn {
+  background: white;
+  border: 2px solid #E0E0E0;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-btn:hover {
+  border-color: #4A90D9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.level-btn.completed {
+  border-color: #5CB85C;
+  background: #f8fff8;
+}
+
+.level-num {
+  font-size: 28px;
+  font-weight: 700;
   color: #333;
 }
 
-.levels {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
+.check {
+  color: #5CB85C;
+  font-size: 18px;
 }
 
-.level-button {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.level-button:hover {
-  background: #45a049;
+.level-name {
+  font-size: 13px;
+  color: #666;
 }
 </style>
