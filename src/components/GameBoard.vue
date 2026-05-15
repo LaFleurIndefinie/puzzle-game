@@ -179,8 +179,8 @@ onUnmounted(() => {
         <!-- Drop indicator - positioned close to dragging piece -->
         <div v-if="dragging && dragging.gridX !== undefined" class="drop-indicator"
           :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }" :style="{
-            left: (dragging.gridX * (cellSize + cellGap)) + 'px',
-            top: (dragging.gridY * (cellSize + cellGap)) + 'px',
+            left: (boardPadding + dragging.gridX * (cellSize + cellGap)) + 'px',
+            top: (boardPadding + dragging.gridY * (cellSize + cellGap)) + 'px',
             width: (activeShape[0]?.length * cellSize + Math.max(0, activeShape[0]?.length - 1) * cellGap) + 'px',
             height: (activeShape.length * cellSize + Math.max(0, activeShape.length - 1) * cellGap) + 'px'
           }" />
