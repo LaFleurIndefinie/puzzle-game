@@ -189,7 +189,7 @@ onUnmounted(() => {
         <div v-if="dragging" class="dragging-piece" :style="dragStyle">
           <div class="piece-grid">
             <div v-for="(row, y) in activeShape" :key="y" class="piece-row">
-              <div v-for="(cell, x) in row" :key="x" class="piece-cell" :style="{
+              <div v-for="(cell, x) in row" :key="x" class="piece-cell" :class="{ filled: cell === 1 }" :style="{
                 width: cellSize + 'px',
                 height: cellSize + 'px',
                 backgroundColor: cell === 1 ? dragColor : 'transparent'
@@ -333,6 +333,10 @@ onUnmounted(() => {
   height: 40px;
   border-radius: 4px;
   box-sizing: border-box;
+  background: transparent;
+}
+
+.piece-cell.filled {
   border: 2px solid white;
 }
 </style>
