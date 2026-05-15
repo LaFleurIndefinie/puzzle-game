@@ -281,7 +281,7 @@ onUnmounted(() => {
 
 .pool-cell.void {
   background: transparent;
-  border: 1px dashed #ddd;
+  border: none;
 }
 
 .pool-cell.filled {
