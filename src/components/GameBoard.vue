@@ -33,8 +33,7 @@ const dragStyle = computed(() => {
   if (!dragging.value) return {}
   return {
     left: (dragging.value.currentX - dragging.value.offsetX) + 'px',
-    top: (dragging.value.currentY - dragging.value.offsetY) + 'px',
-    transform: `rotate(${dragging.value.rotation}deg)`
+    top: (dragging.value.currentY - dragging.value.offsetY) + 'px'
   }
 })
 
@@ -282,6 +281,7 @@ onUnmounted(() => {
   gap: 2px;
   padding: 8px;
   position: relative;
+  overflow: hidden;
 }
 
 .pool-row {

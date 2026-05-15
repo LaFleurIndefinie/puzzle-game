@@ -22,7 +22,8 @@
       "Bash(git -C \"d:\\\\puzzle-game\" add src/components/LevelComplete.vue src/components/Piece.vue src/components/PieceTray.vue src/components/GameBoard.vue src/components/LevelSelector.vue)",
       "Bash(git -C \"d:\\\\puzzle-game\" commit -m \"feat: add all game components\")",
       "Bash(git -C \"d:\\\\puzzle-game\" log -1 --oneline)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "WebFetch(domain:minimax-algeng-chat-tts.oss-cn-wulanchabu.aliyuncs.com)"
     ],
     "additionalDirectories": [
       "d:\\puzzle-game\\docs\\superpowers"

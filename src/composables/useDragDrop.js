@@ -50,8 +50,30 @@ export function useDragDrop() {
 
   function rotateWhileDragging() {
     if (dragging.value) {
-      dragging.value.rotatedShape = rotate90(dragging.value.rotatedShape)
+      const oldShape = dragging.value.rotatedShape
+      const oldWidth = oldShape[0]?.length || 0
+      const oldHeight = oldShape.length
+
+      dragging.value.rotatedShape = rotate90(oldShape)
       dragging.value.rotation = (dragging.value.rotation + 90) % 360
+
+      // Recalculate offset to keep piece under cursor
+      // The cursor stays at the same screen position
+      // We need new offset so: cursorX - newPieceLeft = newOffsetX
+      // And: cursorY - newPieceTop = newOffsetY
+      // Since cursorX = oldPieceLeft + oldOffsetX, and newPieceLeft = oldPieceLeft (same corner)
+      // Then: newOffsetX = oldOffsetX, newOffsetY = oldOffsetY
+      // But wait - we also need to account for the changed dimensions!
+      // The offset should be proportional: offsetX/oldWidth = newOffsetX/newWidth
+      const newWidth = dragging.value.rotatedShape[0]?.length || 0
+      const newHeight = dragging.value.rotatedShape.length
+
+      // Calculate relative position (0-1) then apply to new dimensions
+      const relX = dragging.value.offsetX / oldWidth
+      const relY = dragging.value.offsetY / oldHeight
+
+      dragging.value.offsetX = relX * newWidth
+      dragging.value.offsetY = relY * newHeight
     }
   }
 
