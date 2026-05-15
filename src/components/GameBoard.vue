@@ -176,15 +176,6 @@ onUnmounted(() => {
             :class="{ valid: cell === 1, void: cell === 0, filled: isCellFilled(x, y) }" />
         </div>
 
-        <!-- Drop indicator - positioned close to dragging piece -->
-        <div v-if="dragging && dragging.gridX !== undefined" class="drop-indicator"
-          :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }" :style="{
-            left: (boardPadding + dragging.gridX * (cellSize + cellGap)) + 'px',
-            top: (boardPadding + dragging.gridY * (cellSize + cellGap)) + 'px',
-            width: (activeShape[0]?.length * cellSize + Math.max(0, activeShape[0]?.length - 1) * cellGap) + 'px',
-            height: (activeShape.length * cellSize + Math.max(0, activeShape.length - 1) * cellGap) + 'px'
-          }" />
-
         <!-- Dragging piece overlay -->
         <div v-if="dragging" class="dragging-piece" :style="dragStyle">
           <div class="piece-grid">
