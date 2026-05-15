@@ -172,6 +172,19 @@ onUnmounted(() => {
           />
         </div>
 
+        <!-- Drop indicator overlay -->
+        <div
+          v-if="dragging && dragging.gridX !== undefined"
+          class="drop-indicator"
+          :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }"
+          :style="{
+            left: (dragging.gridX * cellSize) + 'px',
+            top: (dragging.gridY * cellSize) + 'px',
+            width: (activeShape[0]?.length * cellSize) + 'px',
+            height: (activeShape.length * cellSize) + 'px'
+          }"
+        />
+
         <!-- Dragging piece overlay -->
         <div
           v-if="dragging"
@@ -293,6 +306,19 @@ onUnmounted(() => {
   margin-top: 20px;
   font-size: 13px;
   color: #999;
+}
+
+.drop-indicator {
+  position: absolute;
+  border: 3px dashed #ccc;
+  border-radius: 6px;
+  pointer-events: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.drop-indicator.valid {
+  border-color: #5CB85C;
+  background: rgba(92, 184, 92, 0.15);
 }
 
 .dragging-piece {

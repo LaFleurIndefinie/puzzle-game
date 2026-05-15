@@ -32,7 +32,7 @@ function handleDragStart(piece, event) {
       >
         <Piece
           :piece="piece"
-          :color="getPieceColor(index)"
+          :color="getPieceColor(piece.id - 1)"
           :cell-size="40"
         />
       </div>
