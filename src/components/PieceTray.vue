@@ -13,8 +13,9 @@ function getPieceColor(index) {
   return PIECE_COLORS[index % PIECE_COLORS.length]
 }
 
-function handleDragStart(piece, event) {
-  const rect = event.currentTarget.getBoundingClientRect()
+function handleDragStart(piece, event, pieceWrapper) {
+  const pieceEl = pieceWrapper.querySelector('[data-piece="true"]')
+  const rect = pieceEl.getBoundingClientRect()
   const color = getPieceColor(piece.id - 1)
   emit('startDrag', piece, event, rect, color)
 }
@@ -28,8 +29,8 @@ function handleDragStart(piece, event) {
         v-for="(piece, index) in pieces"
         :key="piece.id"
         class="piece-wrapper"
-        @mousedown="handleDragStart(piece, $event)"
-        @touchstart="handleDragStart(piece, $event)"
+        @mousedown="handleDragStart(piece, $event, $event.currentTarget)"
+        @touchstart="handleDragStart(piece, $event, $event.currentTarget)"
       >
         <Piece
           :piece="piece"

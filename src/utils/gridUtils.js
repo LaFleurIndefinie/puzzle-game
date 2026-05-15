@@ -20,10 +20,11 @@ export function rotate90(shape) {
 /**
  * Check if piece can be placed at position
  */
-export function canPlacePiece(piece, poolX, poolY, pool, occupiedCells) {
-  for (let py = 0; py < piece.shape.length; py++) {
-    for (let px = 0; px < piece.shape[py].length; px++) {
-      if (piece.shape[py][px] === 1) {
+export function canPlacePiece(piece, poolX, poolY, pool, occupiedCells, shape) {
+  const checkShape = shape || piece.shape
+  for (let py = 0; py < checkShape.length; py++) {
+    for (let px = 0; px < checkShape[py].length; px++) {
+      if (checkShape[py][px] === 1) {
         const gridX = poolX + px
         const gridY = poolY + py
 
@@ -45,11 +46,12 @@ export function canPlacePiece(piece, poolX, poolY, pool, occupiedCells) {
 /**
  * Get all cells occupied by a piece at given position
  */
-export function getPieceCells(piece, poolX, poolY) {
+export function getPieceCells(piece, poolX, poolY, shape) {
   const cells = []
-  for (let py = 0; py < piece.shape.length; py++) {
-    for (let px = 0; px < piece.shape[py].length; px++) {
-      if (piece.shape[py][px] === 1) {
+  const checkShape = shape || piece.shape
+  for (let py = 0; py < checkShape.length; py++) {
+    for (let px = 0; px < checkShape[py].length; px++) {
+      if (checkShape[py][px] === 1) {
         cells.push({ x: poolX + px, y: poolY + py })
       }
     }

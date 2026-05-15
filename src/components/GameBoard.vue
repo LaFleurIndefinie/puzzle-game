@@ -14,7 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['back'])
 
 const { loadLevel, markCompleted } = useLevels()
-const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace } = useGameState()
+const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace, getCellColor } = useGameState()
 const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging } = useDragDrop()
 
 const boardRef = ref(null)
@@ -55,12 +55,58 @@ const dragColor = computed(() => {
   return dragging.value.color || '#4A90D9'
 })
 
+// Indicator style and validity
+const indicatorStyle = computed(() => {
+  if (!dragging.value || dragging.value.gridX === undefined) return []
+
+  const shape = dragging.value.rotatedShape
+  const isValid = canPlace(dragging.value.pieceId, dragging.value.gridX, dragging.value.gridY, shape)
+  const cells = []
+
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x] === 1) {
+        const left = boardPadding + (dragging.value.gridX + x) * (cellSize + cellGap)
+        const top = boardPadding + (dragging.value.gridY + y) * (cellSize + cellGap)
+        cells.push({
+          left,
+          top,
+          width: cellSize - 2,
+          height: cellSize - 2,
+          isValid
+        })
+      }
+    }
+  }
+
+  return cells
+})
+
 // Level name
 const levelName = ref('')
 
 // Check if a pool cell is filled
 function isCellFilled(x, y) {
   return occupiedCells.value.has(`${x},${y}`)
+}
+
+function getCellBgColor(x, y) {
+  // Check if cell is void (0 in pool)
+  const poolCell = pool.value[y]?.[x]
+  if (poolCell === 0) return 'transparent'
+  // Get the color from occupied cells
+  const color = getCellColor(x, y)
+  return color || '#E0E0E0'
+}
+
+function getCellStyle(x, y) {
+  const poolCell = pool.value[y]?.[x]
+  if (poolCell === 0) return { backgroundColor: 'transparent', border: 'none' }
+  const color = getCellColor(x, y)
+  if (color) {
+    return { backgroundColor: color, border: '2px solid white' }
+  }
+  return { backgroundColor: '#E0E0E0' }
 }
 
 function initGame() {
@@ -81,38 +127,58 @@ function handleStartDrag(piece, event, pieceRect, color) {
 
 function handleMove(event) {
   if (!dragging.value) return
-  updateDrag(event)
 
+  const clientX = event.clientX ?? event.touches?.[0]?.clientX
+  const clientY = event.clientY ?? event.touches?.[0]?.clientY
+
+  dragging.value.currentX = clientX
+  dragging.value.currentY = clientY
+
+  // Calculate grid position based on piece's top-left corner
   const rect = boardRef.value?.getBoundingClientRect()
-  if (!rect) return
+  if (rect) {
+    const pieceLeft = clientX - dragging.value.offsetX
+    const pieceTop = clientY - dragging.value.offsetY
 
-  // Calculate grid position accounting for gap
-  const relX = event.clientX - rect.left - boardPadding
-  const relY = event.clientY - rect.top - boardPadding
-  const gridX = Math.floor(relX / (cellSize + cellGap))
-  const gridY = Math.floor(relY / (cellSize + cellGap))
+    const relX = pieceLeft - rect.left - boardPadding
+    const relY = pieceTop - rect.top - boardPadding
 
-  dragging.value.gridX = gridX
-  dragging.value.gridY = gridY
+    // Use Math.round for magnetic snap feel
+    const gridX = Math.round(relX / (cellSize + cellGap))
+    const gridY = Math.round(relY / (cellSize + cellGap))
 
-  // Position piece to align with indicator (grid-snapped position)
-  dragging.value.currentX = rect.left + boardPadding + gridX * (cellSize + cellGap) + dragging.value.offsetX
-  dragging.value.currentY = rect.top + boardPadding + gridY * (cellSize + cellGap) + dragging.value.offsetY
+    dragging.value.gridX = gridX
+    dragging.value.gridY = gridY
+  }
 }
 
 function handleEnd() {
   if (!dragging.value) return
 
-  const result = endDrag()
-  if (result && result.gridX !== undefined) {
-    const piece = pieces.value.find(p => p.id === result.pieceId)
-    if (piece) {
-      const originalShape = piece.shape.map(row => [...row])
-      piece.shape = result.rotatedShape
+  // Save all data before endDrag clears dragging
+  const pieceColor = dragColor.value
+  const rotatedShape = dragging.value.rotatedShape
+  const mouseX = dragging.value.currentX
+  const mouseY = dragging.value.currentY
+  const offsetX = dragging.value.offsetX
+  const offsetY = dragging.value.offsetY
 
-      if (!placePiece(result.pieceId, result.gridX, result.gridY)) {
-        piece.shape = originalShape
-      }
+  const result = endDrag()
+
+  if (result) {
+    const rect = boardRef.value?.getBoundingClientRect()
+    if (rect) {
+      const pieceLeft = mouseX - offsetX
+      const pieceTop = mouseY - offsetY
+
+      const relX = pieceLeft - rect.left - boardPadding
+      const relY = pieceTop - rect.top - boardPadding
+
+      // Use Math.round for magnetic snap feel
+      const gridX = Math.round(relX / (cellSize + cellGap))
+      const gridY = Math.round(relY / (cellSize + cellGap))
+
+      placePiece(result.pieceId, gridX, gridY, pieceColor, rotatedShape)
     }
   }
 }
@@ -179,8 +245,24 @@ onUnmounted(() => {
       <div ref="boardRef" class="game-board">
         <div v-for="(row, y) in pool" :key="y" class="pool-row">
           <div v-for="(cell, x) in row" :key="x" class="pool-cell"
-            :class="{ valid: cell === 1, void: cell === 0, filled: isCellFilled(x, y) }" />
+            :class="{ void: cell === 0 }"
+            :style="getCellStyle(x, y)" />
         </div>
+
+        <!-- Drop indicator -->
+        <div
+          v-for="(cell, idx) in indicatorStyle"
+          :key="idx"
+          class="drop-indicator"
+          :style="{
+            left: cell.left + 'px',
+            top: cell.top + 'px',
+            width: cell.width + 'px',
+            height: cell.height + 'px',
+            borderColor: cell.isValid ? '#5CB85C' : '#D9534F',
+            backgroundColor: cell.isValid ? 'rgba(92, 184, 92, 0.3)' : 'rgba(217, 83, 79, 0.3)'
+          }"
+        />
 
         <!-- Dragging piece overlay -->
         <div v-if="dragging" class="dragging-piece" :style="dragStyle">
@@ -276,16 +358,11 @@ onUnmounted(() => {
   height: 40px;
   border-radius: 4px;
   transition: background-color 0.15s;
-  background: #E0E0E0;
 }
 
 .pool-cell.void {
   background: transparent;
   border: none;
-}
-
-.pool-cell.filled {
-  background: #4A90D9;
 }
 
 .level-name {
@@ -302,16 +379,11 @@ onUnmounted(() => {
 
 .drop-indicator {
   position: absolute;
-  border: 3px dashed #ccc;
-  border-radius: 6px;
+  border: 2px dashed;
+  border-radius: 4px;
   pointer-events: none;
   transition: border-color 0.15s, background-color 0.15s;
   box-sizing: border-box;
-}
-
-.drop-indicator.valid {
-  border-color: #5CB85C;
-  background: rgba(92, 184, 92, 0.2);
 }
 
 .dragging-piece {

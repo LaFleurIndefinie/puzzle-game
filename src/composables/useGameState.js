@@ -5,7 +5,7 @@ import levelsData from '../data/levels.json'
 export function useGameState() {
   const pool = ref([])
   const pieces = ref([])
-  const occupiedCells = ref(new Set())
+  const occupiedCells = ref(new Map()) // key: "x,y", value: color
   const currentLevel = ref(null)
 
   const isComplete = computed(() => {
@@ -17,7 +17,7 @@ export function useGameState() {
   function initLevel(levelData) {
     currentLevel.value = levelData.id
     pool.value = levelData.pool.map(row => [...row])
-    occupiedCells.value = new Set()
+    occupiedCells.value = new Map()
 
     pieces.value = levelData.pieces.map(p => ({
       ...p,
@@ -25,30 +25,34 @@ export function useGameState() {
       originalShape: p.shape.map(row => [...row]),
       placed: false,
       poolX: null,
-      poolY: null
+      poolY: null,
+      color: null
     }))
   }
 
-  function canPlace(pieceId, poolX, poolY) {
+  function canPlace(pieceId, poolX, poolY, shape) {
     const piece = pieces.value.find(p => p.id === pieceId)
     if (!piece) return false
-    return canPlacePiece(piece, poolX, poolY, pool.value, occupiedCells.value)
+    // Create a Set from the Map keys for compatibility
+    const occupiedKeys = new Set(occupiedCells.value.keys())
+    return canPlacePiece(piece, poolX, poolY, pool.value, occupiedKeys, shape)
   }
 
-  function placePiece(pieceId, poolX, poolY) {
+  function placePiece(pieceId, poolX, poolY, color, shape) {
     const piece = pieces.value.find(p => p.id === pieceId)
     if (!piece) return false
 
-    if (!canPlace(pieceId, poolX, poolY)) return false
+    if (!canPlace(pieceId, poolX, poolY, shape)) return false
 
     removePiece(pieceId)
 
-    const cells = getPieceCells(piece, poolX, poolY)
-    cells.forEach(({ x, y }) => occupiedCells.value.add(`${x},${y}`))
+    const cells = getPieceCells(piece, poolX, poolY, shape)
+    cells.forEach(({ x, y }) => occupiedCells.value.set(`${x},${y}`, color))
 
     piece.placed = true
     piece.poolX = poolX
     piece.poolY = poolY
+    piece.color = color
 
     return true
   }
@@ -63,6 +67,7 @@ export function useGameState() {
     piece.placed = false
     piece.poolX = null
     piece.poolY = null
+    piece.color = null
   }
 
   function rotatePiece(pieceId) {
@@ -74,6 +79,10 @@ export function useGameState() {
     }
 
     piece.shape = rotate90(piece.shape)
+  }
+
+  function getCellColor(x, y) {
+    return occupiedCells.value.get(`${x},${y}`) || null
   }
 
   function resetLevel() {
@@ -94,6 +103,7 @@ export function useGameState() {
     placePiece,
     removePiece,
     rotatePiece,
+    getCellColor,
     resetLevel
   }
 }

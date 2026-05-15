@@ -19,6 +19,7 @@ const pieceHeight = computed(() =>
 <template>
   <div
     class="piece"
+    data-piece="true"
     :class="{ dragging: isDragging, placed: piece.placed }"
     :style="{
       width: pieceWidth + 'px',

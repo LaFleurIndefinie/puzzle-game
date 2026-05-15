@@ -32,8 +32,8 @@ function isCompleted(levelId) {
         @click="emit('select', level.id)"
       >
         <span class="level-num">{{ level.id }}</span>
-        <span v-if="isCompleted(level.id)" class="check">&#10003;</span>
         <span class="level-name">{{ level.name }}</span>
+        <span v-if="isCompleted(level.id)" class="check">&#10003;</span>
       </button>
     </main>
   </div>
@@ -63,23 +63,63 @@ p {
 
 .level-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
-  max-width: 600px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  max-width: 1920px;
   margin: 0 auto;
+  width: 100%;
+}
+
+/* Tablet: 6 columns */
+@media (max-width: 1200px) {
+  .level-grid {
+    max-width: 960px;
+  }
+}
+
+/* Small tablet: 4 columns */
+@media (max-width: 768px) {
+  .level-grid {
+    max-width: 600px;
+  }
+}
+
+/* Phone: 2-3 columns */
+@media (max-width: 480px) {
+  .level-grid {
+    max-width: 100%;
+    gap: 10px;
+  }
+
+  .level-btn {
+    height: 90px;
+    padding: 12px 8px;
+  }
+
+  .level-num {
+    font-size: 22px;
+  }
+
+  .selector-container {
+    padding: 20px 12px;
+  }
 }
 
 .level-btn {
   background: white;
   border: 2px solid #E0E0E0;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 16px 8px;
   cursor: pointer;
   transition: all 0.15s;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
+  height: 100px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .level-btn:hover {
@@ -94,18 +134,19 @@ p {
 }
 
 .level-num {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: #333;
 }
 
 .check {
   color: #5CB85C;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .level-name {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
+  text-align: center;
 }
 </style>
