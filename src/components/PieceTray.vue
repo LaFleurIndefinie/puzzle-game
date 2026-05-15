@@ -15,7 +15,8 @@ function getPieceColor(index) {
 
 function handleDragStart(piece, event) {
   const rect = event.currentTarget.getBoundingClientRect()
-  emit('startDrag', piece, event, rect)
+  const color = getPieceColor(piece.id - 1)
+  emit('startDrag', piece, event, rect, color)
 }
 </script>
 

@@ -19,13 +19,16 @@ const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging } = useDra
 
 const boardRef = ref(null)
 const cellSize = 40
+const cellGap = 2
 const showComplete = ref(false)
 
 const poolDimensions = computed(() => {
   if (!pool.value.length) return { width: 0, height: 0 }
+  const cols = pool.value[0].length
+  const rows = pool.value.length
   return {
-    width: pool.value[0].length * cellSize,
-    height: pool.value.length * cellSize
+    width: cols * cellSize + (cols - 1) * cellGap,
+    height: rows * cellSize + (rows - 1) * cellGap
   }
 })
 
@@ -42,6 +45,11 @@ const activeShape = computed(() => {
   return dragging.value.rotatedShape
 })
 
+const dragColor = computed(() => {
+  if (!dragging.value) return '#4A90D9'
+  return dragging.value.color || '#4A90D9'
+})
+
 function isCellFilled(x, y) {
   return occupiedCells.value.has(`${x},${y}`)
 }
@@ -54,11 +62,11 @@ function initGame() {
   }
 }
 
-function handleStartDrag(piece, event, pieceRect) {
+function handleStartDrag(piece, event, pieceRect, color) {
   if (piece.placed) {
     removePiece(piece.id)
   }
-  startDrag(piece, event, pieceRect)
+  startDrag(piece, event, pieceRect, color)
 }
 
 function handleMove(event) {
@@ -161,13 +169,14 @@ onUnmounted(() => {
           v-for="(row, y) in pool"
           :key="y"
           class="pool-row"
+          :style="{ height: cellSize + 'px' }"
         >
           <div
             v-for="(cell, x) in row"
             :key="x"
             class="pool-cell"
             :class="{ valid: cell === 1, filled: isCellFilled(x, y) }"
-            :style="{ width: cellSize + 'px', height: cellSize + 'px' }"
+            :style="{ width: cellSize + 'px', height: cellSize + 'px', marginRight: x < pool[0].length - 1 ? cellGap + 'px' : '0', marginBottom: y < pool.length - 1 ? cellGap + 'px' : '0' }"
           />
         </div>
 
@@ -177,10 +186,10 @@ onUnmounted(() => {
           class="drop-indicator"
           :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }"
           :style="{
-            left: (dragging.gridX * cellSize) + 'px',
-            top: (dragging.gridY * cellSize) + 'px',
-            width: (activeShape[0]?.length * cellSize) + 'px',
-            height: (activeShape.length * cellSize) + 'px'
+            left: (dragging.gridX * (cellSize + cellGap)) + 'px',
+            top: (dragging.gridY * (cellSize + cellGap)) + 'px',
+            width: (activeShape[0]?.length * cellSize + (activeShape[0]?.length - 1) * cellGap) + 'px',
+            height: (activeShape.length * cellSize + (activeShape.length - 1) * cellGap) + 'px'
           }"
         />
 
@@ -201,7 +210,11 @@ onUnmounted(() => {
                 :key="x"
                 class="piece-cell"
                 :class="{ filled: cell === 1 }"
-                :style="{ width: cellSize + 'px', height: cellSize + 'px' }"
+                :style="{
+                  width: cellSize + 'px',
+                  height: cellSize + 'px',
+                  backgroundColor: cell === 1 ? dragColor : 'transparent'
+                }"
               />
             </div>
           </div>
@@ -276,9 +289,6 @@ onUnmounted(() => {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
   padding: 8px;
   position: relative;
   overflow: hidden;
@@ -286,8 +296,7 @@ onUnmounted(() => {
 
 .pool-row {
   display: flex;
-  gap: 2px;
-  height: 40px;
+  align-items: flex-start;
 }
 
 .pool-cell {

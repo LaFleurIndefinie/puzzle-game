@@ -5,7 +5,7 @@ export function useDragDrop() {
   const dragging = ref(null)
   const isOverValidPosition = ref(false)
 
-  function startDrag(piece, event, pieceRect) {
+  function startDrag(piece, event, pieceRect, color) {
     const clientX = event.clientX ?? event.touches?.[0]?.clientX
     const clientY = event.clientY ?? event.touches?.[0]?.clientY
 
@@ -20,7 +20,8 @@ export function useDragDrop() {
       currentX: clientX,
       currentY: clientY,
       rotation: 0,
-      rotatedShape: piece.shape.map(row => [...row])
+      rotatedShape: piece.shape.map(row => [...row]),
+      color: color
     }
   }
 
