@@ -20,6 +20,7 @@ const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging } = useDra
 const boardRef = ref(null)
 const cellSize = 40
 const cellGap = 2
+const boardPadding = 16
 const showComplete = ref(false)
 
 // Pool dimensions - exact size of the grid
@@ -174,8 +175,8 @@ onUnmounted(() => {
         <!-- Drop indicator - positioned to match pool cells exactly -->
         <div v-if="dragging && dragging.gridX !== undefined" class="drop-indicator"
           :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }" :style="{
-            left: (dragging.gridX * (cellSize + cellGap)) + 'px',
-            top: (dragging.gridY * (cellSize + cellGap)) + 'px',
+            left: (boardPadding + dragging.gridX * (cellSize + cellGap)) + 'px',
+            top: (boardPadding + dragging.gridY * (cellSize + cellGap)) + 'px',
             width: (activeShape[0]?.length * cellSize + Math.max(0, activeShape[0]?.length - 1) * cellGap) + 'px',
             height: (activeShape.length * cellSize + Math.max(0, activeShape.length - 1) * cellGap) + 'px'
           }" />
