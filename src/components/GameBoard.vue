@@ -168,7 +168,7 @@ onUnmounted(() => {
       <div ref="boardRef" class="game-board">
         <div v-for="(row, y) in pool" :key="y" class="pool-row">
           <div v-for="(cell, x) in row" :key="x" class="pool-cell"
-            :class="{ valid: cell === 1, filled: isCellFilled(x, y) }" />
+            :class="{ valid: cell === 1, void: cell === 0, filled: isCellFilled(x, y) }" />
         </div>
 
         <!-- Drop indicator - positioned to match pool cells exactly -->
@@ -275,6 +275,11 @@ onUnmounted(() => {
   border-radius: 4px;
   transition: background-color 0.15s;
   background: #E0E0E0;
+}
+
+.pool-cell.void {
+  background: transparent;
+  border: 1px dashed #ddd;
 }
 
 .pool-cell.filled {
