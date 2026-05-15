@@ -160,62 +160,31 @@ onUnmounted(() => {
     </header>
 
     <main class="game-main">
-      <div
-        ref="boardRef"
-        class="game-board"
-        :style="{ width: poolDimensions.width + 'px', height: poolDimensions.height + 'px' }"
-      >
-        <div
-          v-for="(row, y) in pool"
-          :key="y"
-          class="pool-row"
-          :style="{ height: cellSize + 'px' }"
-        >
-          <div
-            v-for="(cell, x) in row"
-            :key="x"
-            class="pool-cell"
-            :class="{ valid: cell === 1, filled: isCellFilled(x, y) }"
-            :style="{ width: cellSize + 'px', height: cellSize + 'px', marginRight: x < pool[0].length - 1 ? cellGap + 'px' : '0', marginBottom: y < pool.length - 1 ? cellGap + 'px' : '0' }"
-          />
+      <div ref="boardRef" class="game-board"
+        :style="{ width: poolDimensions.width + 'px', height: poolDimensions.height + 'px' }">
+        <div v-for="(row, y) in pool" :key="y" class="pool-row">
+          <div v-for="(cell, x) in row" :key="x" class="pool-cell"
+            :class="{ valid: cell === 1, filled: isCellFilled(x, y) }" />
         </div>
 
         <!-- Drop indicator overlay -->
-        <div
-          v-if="dragging && dragging.gridX !== undefined"
-          class="drop-indicator"
-          :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }"
-          :style="{
+        <div v-if="dragging && dragging.gridX !== undefined" class="drop-indicator"
+          :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }" :style="{
             left: (dragging.gridX * (cellSize + cellGap)) + 'px',
             top: (dragging.gridY * (cellSize + cellGap)) + 'px',
             width: (activeShape[0]?.length * cellSize + (activeShape[0]?.length - 1) * cellGap) + 'px',
             height: (activeShape.length * cellSize + (activeShape.length - 1) * cellGap) + 'px'
-          }"
-        />
+          }" />
 
         <!-- Dragging piece overlay -->
-        <div
-          v-if="dragging"
-          class="dragging-piece"
-          :style="dragStyle"
-        >
+        <div v-if="dragging" class="dragging-piece" :style="dragStyle">
           <div class="piece-grid">
-            <div
-              v-for="(row, y) in activeShape"
-              :key="y"
-              class="piece-row"
-            >
-              <div
-                v-for="(cell, x) in row"
-                :key="x"
-                class="piece-cell"
-                :class="{ filled: cell === 1 }"
-                :style="{
-                  width: cellSize + 'px',
-                  height: cellSize + 'px',
-                  backgroundColor: cell === 1 ? dragColor : 'transparent'
-                }"
-              />
+            <div v-for="(row, y) in activeShape" :key="y" class="piece-row">
+              <div v-for="(cell, x) in row" :key="x" class="piece-cell" :class="{ filled: cell === 1 }" :style="{
+                width: cellSize + 'px',
+                height: cellSize + 'px',
+                backgroundColor: cell === 1 ? dragColor : 'transparent'
+              }" />
             </div>
           </div>
         </div>
@@ -224,17 +193,10 @@ onUnmounted(() => {
       <div class="hint-text">Press R or right-click to rotate</div>
     </main>
 
-    <PieceTray
-      :pieces="pieces"
-      @startDrag="handleStartDrag"
-    />
+    <PieceTray :pieces="pieces" @startDrag="handleStartDrag" />
 
-    <LevelComplete
-      v-if="showComplete"
-      :levelId="levelId"
-      @next="initGame(); $emit('back')"
-      @replay="initGame(); showComplete = false"
-    />
+    <LevelComplete v-if="showComplete" :levelId="levelId" @next="initGame(); $emit('back')"
+      @replay="initGame(); showComplete = false" />
   </div>
 </template>
 
@@ -288,7 +250,7 @@ onUnmounted(() => {
 .game-board {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 8px;
   position: relative;
   overflow: hidden;
@@ -296,15 +258,15 @@ onUnmounted(() => {
 
 .pool-row {
   display: flex;
-  align-items: flex-start;
+  gap: 2px;
 }
 
 .pool-cell {
   flex-shrink: 0;
-  border-radius: 4px;
-  transition: background-color 0.15s;
   width: 40px;
   height: 40px;
+  border-radius: 4px;
+  transition: background-color 0.15s;
   box-sizing: border-box;
 }
 
@@ -345,7 +307,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .piece-row {
@@ -354,7 +316,10 @@ onUnmounted(() => {
 }
 
 .piece-cell {
+  width: 40px;
+  height: 40px;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .piece-cell.filled {
