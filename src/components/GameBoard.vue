@@ -90,6 +90,10 @@ function handleMove(event) {
 
   dragging.value.gridX = gridX
   dragging.value.gridY = gridY
+
+  // Position piece to align with indicator (accounting for board padding)
+  dragging.value.currentX = event.clientX - dragging.value.offsetX
+  dragging.value.currentY = event.clientY - dragging.value.offsetY
 }
 
 function handleEnd() {
