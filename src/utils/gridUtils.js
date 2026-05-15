@@ -29,7 +29,7 @@ export function canPlacePiece(piece, poolX, poolY, pool, occupiedCells) {
 
         // Check bounds
         if (gridY < 0 || gridY >= pool.length) return false
-        if (gridX < 0 || gridX >= pool[0].length) return false
+        if (pool.length === 0 || gridX < 0 || gridX >= pool[0].length) return false
 
         // Check pool shape (0 = void)
         if (pool[gridY][gridX] === 0) return false
