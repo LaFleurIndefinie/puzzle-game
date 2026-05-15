@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "name": "2*2 Square",
+    "name": "Square",
     "pool": [[1, 1], [1, 1]],
     "pieces": [
       { "id": 1, "shape": [[1, 1]] },

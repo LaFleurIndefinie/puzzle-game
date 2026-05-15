@@ -83,17 +83,17 @@ function handleMove(event) {
   if (!rect) return
 
   // Calculate grid position accounting for gap
-  const relX = event.clientX - rect.left
-  const relY = event.clientY - rect.top
+  const relX = event.clientX - rect.left - boardPadding
+  const relY = event.clientY - rect.top - boardPadding
   const gridX = Math.floor(relX / (cellSize + cellGap))
   const gridY = Math.floor(relY / (cellSize + cellGap))
 
   dragging.value.gridX = gridX
   dragging.value.gridY = gridY
 
-  // Position piece to align with indicator (accounting for board padding)
-  dragging.value.currentX = event.clientX - dragging.value.offsetX
-  dragging.value.currentY = event.clientY - dragging.value.offsetY
+  // Position piece to align with indicator (grid-snapped position)
+  dragging.value.currentX = rect.left + boardPadding + gridX * (cellSize + cellGap) + dragging.value.offsetX
+  dragging.value.currentY = rect.top + boardPadding + gridY * (cellSize + cellGap) + dragging.value.offsetY
 }
 
 function handleEnd() {
@@ -176,11 +176,11 @@ onUnmounted(() => {
             :class="{ valid: cell === 1, void: cell === 0, filled: isCellFilled(x, y) }" />
         </div>
 
-        <!-- Drop indicator - positioned to match pool cells exactly -->
+        <!-- Drop indicator - positioned close to dragging piece -->
         <div v-if="dragging && dragging.gridX !== undefined" class="drop-indicator"
           :class="{ valid: canPlace(dragging.pieceId, dragging.gridX, dragging.gridY) }" :style="{
-            left: (boardPadding + dragging.gridX * (cellSize + cellGap)) + 'px',
-            top: (boardPadding + dragging.gridY * (cellSize + cellGap)) + 'px',
+            left: (dragging.gridX * (cellSize + cellGap)) + 'px',
+            top: (dragging.gridY * (cellSize + cellGap)) + 'px',
             width: (activeShape[0]?.length * cellSize + Math.max(0, activeShape[0]?.length - 1) * cellGap) + 'px',
             height: (activeShape.length * cellSize + Math.max(0, activeShape.length - 1) * cellGap) + 'px'
           }" />
