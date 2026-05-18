@@ -1,10 +1,15 @@
 import { ref, watch } from 'vue'
 
-const isDark = ref(false)
+const THEME_KEY = 'block-puzzle-theme'
+
+// Load theme from localStorage
+const storedTheme = localStorage.getItem(THEME_KEY)
+const isDark = ref(storedTheme === 'dark')
 
 export function useTheme() {
   function toggleTheme() {
     isDark.value = !isDark.value
+    localStorage.setItem(THEME_KEY, isDark.value ? 'dark' : 'light')
     applyTheme()
   }
 
@@ -16,7 +21,7 @@ export function useTheme() {
     }
   }
 
-  // Apply theme on load
+  // Apply theme on load and when changed
   watch(isDark, applyTheme, { immediate: true })
 
   return {
