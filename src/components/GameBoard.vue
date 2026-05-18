@@ -15,7 +15,7 @@ const props = defineProps({
 const emit = defineEmits(['back'])
 
 const { loadLevel, markCompleted } = useLevels()
-const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace, getCellColor } = useGameState()
+const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace, getCellColor, getPieceIdAtCell } = useGameState()
 const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging } = useDragDrop()
 
 const boardRef = ref(null)
@@ -182,15 +182,40 @@ function handleStartDrag(piece, event, pieceRect, color) {
 }
 
 // Handle drag start from board (placed pieces)
-function handleBoardDragStart(piece, event, pieceEl) {
-  const pieceColor = piece.color // Save color before removePiece clears it
-  if (piece.placed) {
-    removePiece(piece.id)
+function handleBoardDragStart(event) {
+  const clientX = event.clientX ?? event.touches?.[0]?.clientX
+  const clientY = event.clientY ?? event.touches?.[0]?.clientY
+
+  const rect = boardRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  // Convert click position to grid coordinates
+  const relX = clientX - rect.left - boardPadding
+  const relY = clientY - rect.top - boardPadding
+  const gridX = Math.floor(relX / (cellSize + cellGap))
+  const gridY = Math.floor(relY / (cellSize + cellGap))
+
+  // Find which piece owns this cell
+  const pieceId = getPieceIdAtCell(gridX, gridY)
+  if (!pieceId) return
+
+  // Find the piece
+  const piece = pieces.value.find(p => p.id === pieceId)
+  if (!piece || !piece.placed) return
+
+  // Get the actual cell position for the piece
+  const cellLeft = boardPadding + gridX * (cellSize + cellGap)
+  const cellTop = boardPadding + gridY * (cellSize + cellGap)
+  const cellRect = {
+    left: cellLeft,
+    top: cellTop,
+    width: cellSize,
+    height: cellSize
   }
-  if (pieceEl) {
-    const rect = pieceEl.getBoundingClientRect()
-    startDrag(piece, event, rect, pieceColor)
-  }
+
+  const pieceColor = piece.color
+  removePiece(piece.id)
+  startDrag(piece, event, cellRect, pieceColor)
 }
 
 function handleMove(event) {
@@ -305,9 +330,9 @@ onUnmounted(() => {
 <template>
   <div class="game-container">
     <header class="game-header">
-      <button class="back-btn" @click="emit('back')">&#8592; Menu</button>
+      <button class="back-btn" @click="emit('back')">&#x1F3E0;</button>
       <h1 class="level-title">Level {{ levelId }}</h1>
-      <button class="retry-btn" @click="resetPieces">Retry</button>
+      <button class="retry-btn" @click="resetPieces">&#x21BB;</button>
     </header>
 
     <main class="game-main">
@@ -342,8 +367,8 @@ onUnmounted(() => {
           :key="'placed-' + piece.id"
           class="placed-piece"
           :style="getPlacedPieceStyle(piece)"
-          @mousedown="(e) => handleBoardDragStart(piece, e, e.currentTarget)"
-          @touchstart="(e) => handleBoardDragStart(piece, e, e.currentTarget)"
+          @mousedown="handleBoardDragStart"
+          @touchstart="handleBoardDragStart"
         >
           <div class="piece-grid">
             <div v-for="(row, y) in piece.shape" :key="y" class="piece-row">
@@ -355,7 +380,8 @@ onUnmounted(() => {
                 :style="{
                   width: cellSize + 'px',
                   height: cellSize + 'px',
-                  backgroundColor: cell === 1 ? piece.color : 'transparent'
+                  backgroundColor: cell === 1 ? piece.color : 'transparent',
+                  pointerEvents: cell === 1 ? 'auto' : 'none'
                 }"
               />
             </div>
@@ -398,41 +424,41 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: white;
-  border-bottom: 1px solid #E0E0E0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .back-btn {
   background: none;
   border: none;
-  font-size: 16px;
-  color: #666;
+  font-size: 24px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 4px 8px;
+  transition: transform 0.2s;
 }
 
 .back-btn:hover {
-  color: #333;
+  transform: scale(1.1);
 }
 
 .level-title {
   font-size: 18px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .retry-btn {
-  background: #E0E0E0;
+  background: none;
   border: none;
-  font-size: 14px;
-  color: #333;
+  font-size: 24px;
   cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: background-color 0.15s;
+  padding: 4px 8px;
+  transition: transform 0.2s;
 }
 
 .retry-btn:hover {
-  background: #d0d0d0;
+  transform: scale(1.1);
 }
 
 .game-main {
@@ -449,12 +475,13 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px var(--shadow);
   padding: 16px;
   position: relative;
   flex-shrink: 0;
+  transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 .placed-piece {
@@ -505,13 +532,13 @@ onUnmounted(() => {
 .level-name {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
 .hint-text {
   font-size: 13px;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .drop-indicator {

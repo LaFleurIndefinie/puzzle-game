@@ -5,7 +5,7 @@ import levelsData from '../data/levels.json'
 export function useGameState() {
   const pool = ref([])
   const pieces = ref([])
-  const occupiedCells = ref(new Map()) // key: "x,y", value: color
+  const occupiedCells = ref(new Map()) // key: "x,y", value: { color, pieceId }
   const currentLevel = ref(null)
 
   const isComplete = computed(() => {
@@ -54,7 +54,9 @@ export function useGameState() {
     }
 
     const cells = getPieceCells(piece, poolX, poolY)
-    cells.forEach(({ x, y }) => occupiedCells.value.set(`${x},${y}`, finalColor))
+    cells.forEach(({ x, y }) => {
+      occupiedCells.value.set(`${x},${y}`, { color: finalColor, pieceId: piece.id })
+    })
 
     piece.placed = true
     piece.poolX = poolX
@@ -89,7 +91,13 @@ export function useGameState() {
   }
 
   function getCellColor(x, y) {
-    return occupiedCells.value.get(`${x},${y}`) || null
+    const cell = occupiedCells.value.get(`${x},${y}`)
+    return cell ? cell.color : null
+  }
+
+  function getPieceIdAtCell(x, y) {
+    const cell = occupiedCells.value.get(`${x},${y}`)
+    return cell ? cell.pieceId : null
   }
 
   function resetLevel() {
@@ -111,6 +119,7 @@ export function useGameState() {
     removePiece,
     rotatePiece,
     getCellColor,
+    getPieceIdAtCell,
     resetLevel
   }
 }

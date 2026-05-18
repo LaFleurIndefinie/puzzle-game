@@ -36,17 +36,18 @@ const hasNextLevel = props.levelId < props.maxLevelId
 }
 
 .modal {
-  background: white;
+  background: var(--bg-secondary);
   padding: 40px;
   border-radius: 16px;
   text-align: center;
   max-width: 320px;
+  transition: background-color 0.3s;
 }
 
 .checkmark {
   width: 60px;
   height: 60px;
-  background: #5CB85C;
+  background: var(--success-color);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -59,10 +60,11 @@ const hasNextLevel = props.levelId < props.maxLevelId
 h2 {
   font-size: 24px;
   margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
@@ -79,25 +81,34 @@ p {
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: background-color 0.15s;
+  transition: background-color 0.15s, opacity 0.15s;
   white-space: nowrap;
 }
 
 .btn.primary {
-  background: #4A90D9;
+  background: var(--accent-color);
   color: white;
 }
 
 .btn.primary:hover {
-  background: #3a7bc8;
+  background: var(--accent-hover);
 }
 
 .btn.secondary {
-  background: #E0E0E0;
-  color: #333;
+  background: var(--border-color);
+  color: var(--text-primary);
 }
 
 .btn.secondary:hover {
-  background: #d0d0d0;
+  opacity: 0.8;
+}
+
+.btn.home {
+  background: var(--accent-color);
+  color: white;
+}
+
+.btn.home:hover {
+  background: var(--accent-hover);
 }
 </style>

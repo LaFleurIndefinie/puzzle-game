@@ -13,14 +13,14 @@ const containerRef = ref(null)
 
 // Calculate container height based on tallest piece
 const containerHeight = computed(() => {
-  let maxHeight = 80 // default min height
+  let maxHeight = 100 // default min height
   props.pieces.forEach(piece => {
     const pieceHeight = piece.shape.length * 40 + (piece.shape.length - 1) * 2
     if (pieceHeight > maxHeight) {
       maxHeight = pieceHeight
     }
   })
-  return Math.min(maxHeight + 10, 200) // cap at 200px
+  return maxHeight + 20 // enough to show tallest piece
 })
 
 const PIECE_COLORS = [
@@ -109,15 +109,16 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .piece-tray {
-  background: #FAFAFA;
+  background: var(--bg-tertiary);
   padding: 20px;
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid var(--border-color);
   pointer-events: auto;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .tray-label {
   font-size: 12px;
-  color: #999;
+  color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 12px;

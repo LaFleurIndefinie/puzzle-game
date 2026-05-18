@@ -48,7 +48,7 @@ function handleSelect(levelId) {
   <div class="selector-container">
     <header class="selector-header">
       <h1>Block Puzzle</h1>
-      <p>Fill the pool with all pieces</p>
+      <p>Put all pieces in the pool!</p>
     </header>
 
     <main ref="gridRef" class="level-grid">
@@ -72,7 +72,8 @@ function handleSelect(levelId) {
 .selector-container {
   min-height: 100vh;
   padding: 40px 20px;
-  background: #F5F5F5;
+  background: var(--bg-primary);
+  transition: background-color 0.3s;
 }
 
 .selector-header {
@@ -84,10 +85,11 @@ h1 {
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 8px;
+  color: var(--text-primary);
 }
 
 p {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .level-grid {
@@ -135,12 +137,12 @@ p {
 }
 
 .level-btn {
-  background: white;
-  border: 2px solid #E0E0E0;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   padding: 16px 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s, background-color 0.3s, border-color 0.3s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -152,30 +154,30 @@ p {
 }
 
 .level-btn:hover {
-  border-color: #4A90D9;
+  border-color: var(--accent-color);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .level-btn.completed {
-  border-color: #5CB85C;
-  background: #f8fff8;
+  border-color: var(--success-color);
+  background: var(--bg-secondary);
 }
 
 .level-num {
   font-size: 26px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .check {
-  color: #5CB85C;
+  color: var(--success-color);
   font-size: 16px;
 }
 
 .level-name {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   text-align: center;
 }
 </style>

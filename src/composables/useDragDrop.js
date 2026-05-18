@@ -9,9 +9,17 @@ export function useDragDrop() {
     const clientX = event.clientX ?? event.touches?.[0]?.clientX
     const clientY = event.clientY ?? event.touches?.[0]?.clientY
 
+    // Calculate piece dimensions including gaps
+    const cellSize = 40
+    const cellGap = 2
+    const rows = piece.shape.length
+    const cols = piece.shape[0]?.length || 0
+    const pieceWidth = cols * cellSize + (cols - 1) * cellGap
+    const pieceHeight = rows * cellSize + (rows - 1) * cellGap
+
     // Center offset: piece center is always at mouse position
-    const offsetX = pieceRect.width / 2
-    const offsetY = pieceRect.height / 2
+    const offsetX = pieceWidth / 2
+    const offsetY = pieceHeight / 2
 
     dragging.value = {
       pieceId: piece.id,
