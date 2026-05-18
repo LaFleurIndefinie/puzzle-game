@@ -1,9 +1,12 @@
 <script setup>
 const props = defineProps({
-  levelId: { type: Number, required: true }
+  levelId: { type: Number, required: true },
+  maxLevelId: { type: Number, default: 30 }
 })
 
-const emit = defineEmits(['next', 'replay'])
+const emit = defineEmits(['home', 'next', 'replay'])
+
+const hasNextLevel = props.levelId < props.maxLevelId
 </script>
 
 <template>
@@ -14,7 +17,8 @@ const emit = defineEmits(['next', 'replay'])
       <p>You filled the pool perfectly.</p>
       <div class="actions">
         <button class="btn secondary" @click="emit('replay')">Replay</button>
-        <button class="btn primary" @click="emit('next')">Next Level</button>
+        <button class="btn home" @click="emit('home')">Home</button>
+        <button v-if="hasNextLevel" class="btn primary" @click="emit('next')">Next</button>
       </div>
     </div>
   </div>
@@ -64,7 +68,7 @@ p {
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: center;
 }
 
@@ -76,6 +80,7 @@ p {
   cursor: pointer;
   border: none;
   transition: background-color 0.15s;
+  white-space: nowrap;
 }
 
 .btn.primary {

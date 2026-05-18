@@ -9,9 +9,8 @@ export function useGameState() {
   const currentLevel = ref(null)
 
   const isComplete = computed(() => {
-    if (!pool.value.length) return false
-    const totalPoolCells = pool.value.flat().filter(c => c === 1).length
-    return occupiedCells.value.size === totalPoolCells
+    if (!pieces.value.length) return false
+    return pieces.value.every(p => p.placed)
   })
 
   function initLevel(levelData) {
@@ -44,8 +43,8 @@ export function useGameState() {
 
     if (!canPlace(pieceId, poolX, poolY, shape)) return false
 
-    // Save the original color BEFORE removePiece clears it
-    const originalColor = piece.color
+    // Use piece's existing color if it has one (preserved when removed), otherwise use the new color
+    const finalColor = piece.color || color
 
     removePiece(pieceId)
 
@@ -53,9 +52,6 @@ export function useGameState() {
     if (shape) {
       piece.shape = shape
     }
-
-    // Use original color if piece was already placed, otherwise use the new color
-    const finalColor = originalColor || color
 
     const cells = getPieceCells(piece, poolX, poolY)
     cells.forEach(({ x, y }) => occupiedCells.value.set(`${x},${y}`, finalColor))
@@ -78,7 +74,7 @@ export function useGameState() {
     piece.placed = false
     piece.poolX = null
     piece.poolY = null
-    piece.color = null
+    // Keep color so piece can be dragged with its color
   }
 
   function rotatePiece(pieceId) {

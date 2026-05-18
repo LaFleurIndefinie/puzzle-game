@@ -1,12 +1,27 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import Piece from './Piece.vue'
 
 const props = defineProps({
-  pieces: { type: Array, required: true }
+  pieces: { type: Array, required: true },
+  draggingPieceId: { type: [Number, null], default: null }
 })
 
 const emit = defineEmits(['startDrag'])
+
+const containerRef = ref(null)
+
+// Calculate container height based on tallest piece
+const containerHeight = computed(() => {
+  let maxHeight = 80 // default min height
+  props.pieces.forEach(piece => {
+    const pieceHeight = piece.shape.length * 40 + (piece.shape.length - 1) * 2
+    if (pieceHeight > maxHeight) {
+      maxHeight = pieceHeight
+    }
+  })
+  return Math.min(maxHeight + 10, 200) // cap at 200px
+})
 
 const PIECE_COLORS = [
   '#E74C3C', '#E67E22', '#F1C40F', '#2ECC71', '#16A085',
@@ -48,23 +63,45 @@ function handleDragStart(piece, event, pieceEl, color) {
   const rect = pieceEl.getBoundingClientRect()
   emit('startDrag', piece, event, rect, color)
 }
+
+function handleWheel(event) {
+  if (containerRef.value) {
+    event.preventDefault()
+    containerRef.value.scrollLeft += event.deltaY
+  }
+}
+
+onMounted(() => {
+  if (containerRef.value) {
+    containerRef.value.addEventListener('wheel', handleWheel, { passive: false })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (containerRef.value) {
+    containerRef.value.removeEventListener('wheel', handleWheel)
+  }
+})
 </script>
 
 <template>
   <div class="piece-tray">
     <div class="tray-label">Pieces</div>
-    <div class="pieces-container">
-      <div
-        v-for="(piece, index) in pieces.filter(p => !p.placed)"
-        :key="piece.id"
-        class="piece-wrapper"
-      >
-        <Piece
-          :piece="piece"
-          :color="shuffledColors[piece.id - 1] || PIECE_COLORS[(piece.id - 1) % PIECE_COLORS.length]"
-          :cell-size="40"
-          @drag-start="(e, el) => handleDragStart(piece, e, el, shuffledColors[piece.id - 1] || PIECE_COLORS[(piece.id - 1) % PIECE_COLORS.length])"
-        />
+    <div class="scroll-wrapper" :style="{ height: containerHeight + 'px' }">
+      <div ref="containerRef" class="pieces-container" :style="{ height: containerHeight + 'px' }">
+        <div
+          v-for="(piece, index) in pieces"
+          :key="piece.id"
+          class="piece-wrapper"
+          :class="{ 'piece-hidden': piece.placed || piece.id === draggingPieceId }"
+        >
+          <Piece
+            :piece="piece"
+            :color="shuffledColors[piece.id - 1] || PIECE_COLORS[(piece.id - 1) % PIECE_COLORS.length]"
+            :cell-size="40"
+            @drag-start="(e, el) => handleDragStart(piece, e, el, shuffledColors[piece.id - 1] || PIECE_COLORS[(piece.id - 1) % PIECE_COLORS.length])"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -86,20 +123,53 @@ function handleDragStart(piece, event, pieceEl, color) {
   margin-bottom: 12px;
 }
 
+.scroll-wrapper {
+  overflow: hidden;
+}
+
 .pieces-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
   gap: 20px;
-  justify-content: center;
-  min-height: 80px;
+  justify-content: flex-start;
+  align-items: center;
   pointer-events: auto;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pieces-container::-webkit-scrollbar {
+  height: 0;
+}
+
+.pieces-container::-webkit-scrollbar-thumb {
+  height: 0;
+  background: transparent;
+}
+
+.pieces-container::-webkit-scrollbar-track {
+  height: 0;
+  background: transparent;
 }
 
 .piece-wrapper {
   cursor: grab;
+  flex-shrink: 0;
 }
 
 .piece-wrapper:active {
   cursor: grabbing;
+}
+
+.piece-hidden {
+  visibility: hidden;
+  width: 0;
+  margin: 0;
+  padding: 0;
 }
 </style>

@@ -8,7 +8,8 @@ import PieceTray from './PieceTray.vue'
 import LevelComplete from './LevelComplete.vue'
 
 const props = defineProps({
-  levelId: { type: Number, required: true }
+  levelId: { type: Number, required: true },
+  maxLevelId: { type: Number, default: 30 }
 })
 
 const emit = defineEmits(['back'])
@@ -53,6 +54,11 @@ const activeShape = computed(() => {
 const dragColor = computed(() => {
   if (!dragging.value) return '#4A90D9'
   return dragging.value.color || '#4A90D9'
+})
+
+// ID of piece being dragged (to keep it in layout but hidden)
+const draggingPieceId = computed(() => {
+  return dragging.value?.pieceId || null
 })
 
 // Placed pieces to render on board
@@ -154,6 +160,20 @@ function initGame() {
   }
 }
 
+function resetPieces() {
+  // Reset all pieces to original shape and unplace them
+  pieces.value.forEach(piece => {
+    piece.shape = piece.originalShape.map(row => [...row])
+    piece.placed = false
+    piece.poolX = null
+    piece.poolY = null
+    piece.color = null
+  })
+  // Clear occupied cells
+  occupiedCells.value.clear()
+  showComplete.value = false
+}
+
 function handleStartDrag(piece, event, pieceRect, color) {
   if (piece.placed) {
     removePiece(piece.id)
@@ -163,12 +183,13 @@ function handleStartDrag(piece, event, pieceRect, color) {
 
 // Handle drag start from board (placed pieces)
 function handleBoardDragStart(piece, event, pieceEl) {
+  const pieceColor = piece.color // Save color before removePiece clears it
   if (piece.placed) {
     removePiece(piece.id)
   }
   if (pieceEl) {
     const rect = pieceEl.getBoundingClientRect()
-    startDrag(piece, event, rect, piece.color)
+    startDrag(piece, event, rect, pieceColor)
   }
 }
 
@@ -257,6 +278,10 @@ watch(isComplete, (complete) => {
   }
 })
 
+watch(() => props.levelId, () => {
+  initGame()
+})
+
 onMounted(() => {
   initGame()
   window.addEventListener('mousemove', handleMove)
@@ -282,7 +307,7 @@ onUnmounted(() => {
     <header class="game-header">
       <button class="back-btn" @click="emit('back')">&#8592; Menu</button>
       <h1 class="level-title">Level {{ levelId }}</h1>
-      <div class="spacer"></div>
+      <button class="retry-btn" @click="resetPieces">Retry</button>
     </header>
 
     <main class="game-main">
@@ -354,10 +379,10 @@ onUnmounted(() => {
       <div class="hint-text">Press R or right-click to rotate</div>
     </main>
 
-    <PieceTray :pieces="pieces" @startDrag="handleStartDrag" />
+    <PieceTray :pieces="pieces" :dragging-piece-id="draggingPieceId" @startDrag="handleStartDrag" />
 
-    <LevelComplete v-if="showComplete" :levelId="levelId" @next="initGame(); $emit('back')"
-      @replay="initGame(); showComplete = false" />
+    <LevelComplete v-if="showComplete" :levelId="levelId" :maxLevelId="maxLevelId" @home="$emit('back')"
+      @next="showComplete = false; $emit('nextLevel')" @replay="initGame(); showComplete = false" />
   </div>
 </template>
 
@@ -395,8 +420,19 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-.spacer {
-  width: 80px;
+.retry-btn {
+  background: #E0E0E0;
+  border: none;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background-color 0.15s;
+}
+
+.retry-btn:hover {
+  background: #d0d0d0;
 }
 
 .game-main {
@@ -404,9 +440,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  padding: 40px 20px 20px;
   gap: 20px;
+  min-height: 0;
 }
 
 .game-board {
@@ -418,6 +454,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   padding: 16px;
   position: relative;
+  flex-shrink: 0;
 }
 
 .placed-piece {

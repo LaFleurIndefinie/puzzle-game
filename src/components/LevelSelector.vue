@@ -1,18 +1,46 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useLevels } from '../composables/useLevels.js'
+
+const props = defineProps({
+  lastPlayedLevel: { type: Number, default: null },
+  savedScrollTop: { type: Number, default: 0 }
+})
 
 const emit = defineEmits(['select'])
 
 const { levels, getCompletedLevels } = useLevels()
 const completedLevels = ref([])
+const gridRef = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
   completedLevels.value = getCompletedLevels()
+
+  // Restore scroll position after level selection
+  await nextTick()
+  if (props.savedScrollTop > 0) {
+    window.scrollTo({ top: props.savedScrollTop })
+  } else if (props.lastPlayedLevel) {
+    scrollToLevel(props.lastPlayedLevel)
+  }
 })
 
 function isCompleted(levelId) {
   return completedLevels.value.includes(levelId)
+}
+
+function scrollToLevel(levelId) {
+  if (!levelId || !gridRef.value) return
+  const button = gridRef.value.querySelector(`[data-level-id="${levelId}"]`)
+  if (button) {
+    const rect = button.getBoundingClientRect()
+    const scrollTop = window.scrollY + rect.top - window.innerHeight / 2 + rect.height / 2
+    window.scrollTo({ top: scrollTop })
+  }
+}
+
+function handleSelect(levelId) {
+  emit('select', levelId, window.scrollY)
 }
 </script>
 
@@ -23,13 +51,14 @@ function isCompleted(levelId) {
       <p>Fill the pool with all pieces</p>
     </header>
 
-    <main class="level-grid">
+    <main ref="gridRef" class="level-grid">
       <button
         v-for="level in levels"
         :key="level.id"
+        :data-level-id="level.id"
         class="level-btn"
         :class="{ completed: isCompleted(level.id) }"
-        @click="emit('select', level.id)"
+        @click="handleSelect(level.id)"
       >
         <span class="level-num">{{ level.id }}</span>
         <span class="level-name">{{ level.name }}</span>
