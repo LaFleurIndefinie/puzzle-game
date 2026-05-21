@@ -67,7 +67,7 @@ function handleDragStart(piece, event, pieceEl, color) {
 function handleWheel(event) {
   if (containerRef.value) {
     event.preventDefault()
-    containerRef.value.scrollLeft += event.deltaY
+    containerRef.value.scrollLeft += event.deltaY * 2
   }
 }
 

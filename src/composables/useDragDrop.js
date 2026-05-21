@@ -1,6 +1,27 @@
 import { ref } from 'vue'
 import { rotate90 } from '../utils/gridUtils.js'
 
+// Get the actual shape bounds, ignoring padding zeros
+export function getShapeBounds(shape) {
+  let minRow = shape.length, maxRow = -1
+  let minCol = shape[0]?.length || 0, maxCol = -1
+
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c] === 1) {
+        minRow = Math.min(minRow, r)
+        maxRow = Math.max(maxRow, r)
+        minCol = Math.min(minCol, c)
+        maxCol = Math.max(maxCol, c)
+      }
+    }
+  }
+
+  const rows = maxRow >= 0 ? maxRow - minRow + 1 : 0
+  const cols = maxCol >= 0 ? maxCol - minCol + 1 : 0
+  return { rows, cols }
+}
+
 export function useDragDrop() {
   const dragging = ref(null)
   const isOverValidPosition = ref(false)
@@ -9,15 +30,14 @@ export function useDragDrop() {
     const clientX = event.clientX ?? event.touches?.[0]?.clientX
     const clientY = event.clientY ?? event.touches?.[0]?.clientY
 
-    // Calculate piece dimensions including gaps
+    // Calculate piece dimensions based on actual shape (ignoring padding zeros)
     const cellSize = 40
     const cellGap = 2
-    const rows = piece.shape.length
-    const cols = piece.shape[0]?.length || 0
+    const { rows, cols } = getShapeBounds(piece.shape)
     const pieceWidth = cols * cellSize + (cols - 1) * cellGap
     const pieceHeight = rows * cellSize + (rows - 1) * cellGap
 
-    // Center offset: piece center is always at mouse position
+    // Center offset: piece center is at mouse position
     const offsetX = pieceWidth / 2
     const offsetY = pieceHeight / 2
 
@@ -61,12 +81,12 @@ export function useDragDrop() {
   function rotateWhileDragging() {
     if (dragging.value) {
       const newShape = rotate90(dragging.value.rotatedShape)
-      dragging.value.rotatedShape = newShape
+      // Create new shape array reference for Vue reactivity
+      dragging.value.rotatedShape = newShape.map(row => [...row])
       dragging.value.rotation = (dragging.value.rotation + 90) % 360
 
       // Recalculate offset to keep piece centered after rotation
-      const newWidth = newShape[0]?.length || 0
-      const newHeight = newShape.length
+      const { rows: newHeight, cols: newWidth } = getShapeBounds(newShape)
       const cellSize = 40
       const cellGap = 2
       const pieceWidth = newWidth * cellSize + (newWidth - 1) * cellGap
@@ -89,6 +109,7 @@ export function useDragDrop() {
     updateDrag,
     endDrag,
     rotateWhileDragging,
-    screenToGrid
+    screenToGrid,
+    getShapeBounds
   }
 }

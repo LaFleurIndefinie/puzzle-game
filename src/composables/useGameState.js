@@ -76,7 +76,10 @@ export function useGameState() {
     piece.placed = false
     piece.poolX = null
     piece.poolY = null
-    // Keep color so piece can be dragged with its color
+    // Restore original shape so piece looks the same in tray
+    if (piece.originalShape) {
+      piece.shape = piece.originalShape.map(row => [...row])
+    }
   }
 
   function rotatePiece(pieceId) {

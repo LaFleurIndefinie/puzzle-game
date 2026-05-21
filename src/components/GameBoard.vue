@@ -16,7 +16,7 @@ const emit = defineEmits(['back'])
 
 const { loadLevel, markCompleted } = useLevels()
 const { pool, pieces, occupiedCells, isComplete, initLevel, placePiece, removePiece, canPlace, getCellColor, getPieceIdAtCell } = useGameState()
-const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging } = useDragDrop()
+const { dragging, startDrag, updateDrag, endDrag, rotateWhileDragging, getShapeBounds } = useDragDrop()
 
 const boardRef = ref(null)
 const cellSize = 40
@@ -44,10 +44,55 @@ const dragStyle = computed(() => {
   }
 })
 
-// Current shape being dragged
+// Get the trim offset (where first 1 appears) for proper positioning
+function getTrimOffset(shape) {
+  if (!shape || !shape.length) return { row: 0, col: 0 }
+
+  let minRow = shape.length, minCol = shape[0]?.length || 0
+
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c] === 1) {
+        minRow = Math.min(minRow, r)
+        minCol = Math.min(minCol, c)
+      }
+    }
+  }
+
+  return { row: minRow, col: minCol }
+}
+
+// Trim shape to actual bounds (remove padding zeros)
+function trimShape(shape) {
+  if (!shape || !Array.isArray(shape) || !shape.length) return [[0]]
+
+  let minRow = shape.length, maxRow = -1
+  let minCol = shape[0].length, maxCol = -1
+
+  for (let r = 0; r < shape.length; r++) {
+    if (!shape[r]) continue
+    for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c] === 1) {
+        minRow = Math.min(minRow, r)
+        maxRow = Math.max(maxRow, r)
+        minCol = Math.min(minCol, c)
+        maxCol = Math.max(maxCol, c)
+      }
+    }
+  }
+
+  // If no 1s found, return original shape
+  if (maxRow < 0 || maxCol < 0) return shape
+
+  return shape.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1))
+}
+
+// Current shape being dragged (trimmed for visual rendering)
 const activeShape = computed(() => {
-  if (!dragging.value) return null
-  return dragging.value.rotatedShape
+  if (!dragging.value) return []
+  const shape = dragging.value.rotatedShape
+  if (!shape || !shape.length) return []
+  return trimShape(shape)
 })
 
 // Color of piece being dragged
@@ -80,7 +125,7 @@ function getPlacedPieceStyle(piece) {
 const indicatorStyle = computed(() => {
   if (!dragging.value || dragging.value.gridX === undefined) return []
 
-  const shape = dragging.value.rotatedShape
+  const shape = activeShape.value
   const poolCols = pool.value[0]?.length || 0
   const poolRows = pool.value.length
 
@@ -271,7 +316,9 @@ function handleEnd() {
       const gridX = Math.round(relX / (cellSize + cellGap))
       const gridY = Math.round(relY / (cellSize + cellGap))
 
-      placePiece(result.pieceId, gridX, gridY, pieceColor, rotatedShape)
+      // Use trimmed shape for placement
+      const trimmedShape = trimShape(rotatedShape)
+      placePiece(result.pieceId, gridX, gridY, pieceColor, trimmedShape)
     }
   }
 }
@@ -390,7 +437,7 @@ onUnmounted(() => {
 
         <!-- Dragging piece overlay -->
         <div v-if="dragging" class="dragging-piece" :style="dragStyle">
-          <div class="piece-grid">
+          <div class="piece-grid" :key="'piece-' + dragging.pieceId + '-' + dragging.rotation">
             <div v-for="(row, y) in activeShape" :key="y" class="piece-row">
               <div v-for="(cell, x) in row" :key="x" class="piece-cell" :class="{ filled: cell === 1 }" :style="{
                 width: cellSize + 'px',
